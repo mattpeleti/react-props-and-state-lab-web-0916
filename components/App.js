@@ -1,12 +1,15 @@
+const FetchMock = require('fetch-mock')
 const React = require('react');
-
+const allPets = require('../data/pets')
 const Filters = require('./Filters');
 const PetBrowser = require('./PetBrowser');
 
 class App extends React.Component {
   constructor() {
     super();
-
+    this.onAdoptPet = this.onAdoptPet.bind(this)
+    this.onChangeType = this.onChangeType.bind(this)
+    this.onFindPetsClick = this.onFindPetsClick.bind(this)
     this.state = {
       pets: [],
       adoptedPets: [],
@@ -15,7 +18,26 @@ class App extends React.Component {
       }
     };
   }
+  onAdoptPet(pet_id){
+    this.setState({adoptedPets: [...this.state.adoptedPets, pet_id]})
+  }
+  onChangeType(type){
+    this.setState({filters: {type: type}})
+  }
+  onFindPetsClick(){
+    var url = '/api/pets'
+    if(this.state.filters.type !== 'all'){
+      url = `/api/pets?type=${this.state.filters.type}`
+    }
 
+    let pets = []
+
+    fetch(url).then((response) => {
+      return response.json()
+    }).then((response) => {
+      this.setState({ pets: response})
+    })
+  }
   render() {
     return (
       <div className="ui container">
@@ -25,10 +47,10 @@ class App extends React.Component {
         <div className="ui container">
           <div className="ui grid">
             <div className="four wide column">
-              <Filters />
+              <Filters filters={this.state.filters} onChangeType={this.onChangeType} onFindPetsClick={this.onFindPetsClick} />
             </div>
             <div className="twelve wide column">
-              <PetBrowser />
+              <PetBrowser pets={this.state.pets} adoptedPets={this.state.adoptedPets} onAdoptPet={this.onAdoptPet} />
             </div>
           </div>
         </div>
